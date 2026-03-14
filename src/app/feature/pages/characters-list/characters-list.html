@@ -1,0 +1,214 @@
+
+    <div class="planet w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent top-[10%] left-[5%] blur-xl"></div>
+    <div class="planet w-48 h-48 bg-gradient-to-tr from-secondary/10 to-transparent bottom-[20%] right-[10%] blur-2xl"></div>
+    <div class="planet w-24 h-24 bg-gradient-to-bl from-purple-500/10 to-transparent top-[40%] right-[15%] blur-lg"></div>
+    
+    <div class="relative flex h-auto w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <header class="flex items-center justify-between border-b border-primary/20 bg-background-dark/80 backdrop-blur-md px-6 py-4 sticky top-0 z-50 lg:px-20">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-3 text-primary">
+                        <div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
+                            <span class="material-symbols-outlined text-primary text-2xl">rocket_launch</span>
+                        </div>
+                        <h2 class="text-slate-100 text-xl font-bold leading-tight tracking-tight hidden sm:block">Rick and Morty <span class="text-primary">Fan Base</span></h2>
+                    </div>
+                    <nav class="hidden md:flex items-center gap-8">
+                        <a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Episodes</a>
+                        <a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Locations</a>
+                        <a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">About</a>
+                    </nav>
+                </div>
+                
+                <div class="flex flex-1 justify-end gap-4 max-w-md ml-4">
+                    <label class="flex flex-col w-full !h-10">
+                        <div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-800/50 border border-slate-700 focus-within:border-primary transition-all">
+                            <div class="text-slate-400 flex items-center justify-center pl-3">
+                                <span class="material-symbols-outlined text-xl">search</span>
+                            </div>
+                            <input 
+                                class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent text-slate-100 focus:ring-0 placeholder:text-slate-500 px-3 text-sm"
+                                placeholder="Search characters, dimensions..." 
+                                [(ngModel)]="searchName"
+                                (keyup.enter)="onSearch()" />
+                        </div>
+                    </label>
+                    
+                    <select 
+                        [(ngModel)]="filterStatus"
+                        (change)="onSearch()"
+                        class="form-select flex items-stretch rounded-lg h-full bg-slate-800/50 border border-slate-700 focus-within:border-primary transition-all text-slate-100 px-3 text-sm">
+                        <option value="">All Status</option>
+                        <option value="Alive">Alive</option>
+                        <option value="Dead">Dead</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                    
+                    <button 
+                        (click)="resetFilters()"
+                        class="px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-300 hover:text-primary transition-all text-sm font-medium">
+                        Reset
+                    </button>
+                </div>
+            </header>
+            
+            <main class="flex-1">
+                <section class="max-w-[1200px] mx-auto px-6 py-16 lg:px-10">
+                    <div class="flex items-center justify-between mb-10">
+                        <div>
+                            <h2 class="text-slate-100 text-3xl font-bold tracking-tight">Characters</h2>
+                            <p class="text-slate-400 mt-1">Found in this dimension</p>
+                        </div>
+                        <button class="flex items-center gap-2 text-primary font-bold hover:underline">
+                            View All <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </div>
+
+                    <div *ngIf="loading" class="text-center py-10 col-span-full">
+                        <div class="inline-flex items-center gap-3 text-primary">
+                            <span class="material-symbols-outlined animate-spin">sync</span>
+                            <span class="font-bold">Cargando personajes del multiverso...</span>
+                        </div>
+                    </div>
+
+                    <div *ngIf="errorMessage" class="alert alert-danger col-span-full text-center py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg mb-6">
+                        {{ errorMessage }}
+                    </div>
+
+                    <div *ngIf="!loading && !errorMessage && characters.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                        
+                        <div class="group flex flex-col bg-slate-800/30 rounded-2xl transition-all overflow-hidden backdrop-blur-sm character-card-glow" 
+                             *ngFor="let character of characters">
+                            
+                            <div class="relative aspect-square overflow-hidden">
+                                <img [alt]="character.name + ' character image'"
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                     [src]="character.image" />
+                                
+                                <div class="absolute top-3 right-3 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider"
+                                     [ngClass]="getStatusClass(character.status)">
+                                    {{ character.status }}
+                                </div>
+                            </div>
+                            
+                            <div class="p-5">
+                                <h3 class="text-slate-100 text-lg font-bold group-hover:text-primary transition-colors">
+                                    {{ character.name }}
+                                </h3>
+                                
+                                <div class="mt-3 space-y-2">
+                                    <div class="flex items-center gap-2 text-sm text-slate-400">
+                                        <span class="material-symbols-outlined text-xs text-secondary">genetics</span>
+                                        <span>{{ character.species }}</span>
+                                    </div>
+                                    
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last Location</span>
+                                        <span class="text-sm text-slate-300 font-medium">
+                                            {{ character.location.name || 'Unknown' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div *ngIf="!loading && !errorMessage && characters.length === 0" 
+                          class="text-center py-10 col-span-full text-slate-400">
+                        No se encontraron personajes en esta dimensión
+                    </div> 
+
+                                        
+                    <div class="flex justify-center items-center gap-6 mt-16 mb-8">
+                        <button 
+                            (click)="goToPrevious()"
+                            [disabled]="currentPage === 1"
+                            class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border-2 border-primary rounded-lg text-primary font-bold hover:bg-primary hover:text-background-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                             Previous
+                        </button>
+                        <div class="text-slate-500 font-mono text-sm tracking-widest">
+                            PAGE {{ currentPage | number:'2.0-0' }} / {{ totalPages }}
+                        </div>
+                        <button 
+                            (click)="goToNext()"
+                            [disabled]="currentPage === totalPages"
+                            class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border-2 border-primary rounded-lg text-primary font-bold hover:bg-primary hover:text-background-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </div>
+
+
+
+                </section>
+                
+                <section class="max-w-[1200px] mx-auto px-6 py-12 lg:px-10 overflow-hidden">
+                    <div class="solar-system-container flex items-center justify-center">
+                        <svg class="w-full h-full" viewbox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse class="hand-drawn-path opacity-30" cx="400" cy="200" fill="none" rx="100" ry="40" stroke="#97ce4b" stroke-width="1"></ellipse>
+                            <ellipse class="hand-drawn-path opacity-20" cx="400" cy="200" fill="none" rx="180" ry="70" stroke="#97ce4b" stroke-width="1"></ellipse>
+                            <ellipse class="hand-drawn-path opacity-15" cx="400" cy="200" fill="none" rx="280" ry="110" stroke="#97ce4b" stroke-width="1"></ellipse>
+                            <g>
+                                <circle class="opacity-20 blur-xl" cx="400" cy="200" fill="#97ce4b" r="45"></circle>
+                                <circle class="opacity-80" cx="400" cy="200" fill="#97ce4b" r="25"></circle>
+                                <path d="M400,165 Q410,180 400,200 Q390,220 400,235" fill="none" stroke="#0a0c08" stroke-linecap="round" stroke-width="2"></path>
+                            </g>
+                            <g transform="translate(320, 185)">
+                                <circle fill="#00d4ff" r="12" stroke="#fff" stroke-width="1"></circle>
+                                <path d="M-6,-4 Q0,0 6,4" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1"></path>
+                            </g>
+                            <g transform="translate(550, 230)">
+                                <ellipse fill="none" rx="25" ry="8" stroke="#97ce4b" stroke-width="1.5" transform="rotate(-15)"></ellipse>
+                                <circle fill="#7b4bce" r="15" stroke="#fff" stroke-width="1"></circle>
+                            </g>
+                            <g transform="translate(150, 140)">
+                                <circle fill="#ce4b4b" r="18" stroke="#fff" stroke-width="1"></circle>
+                                <path d="M-10,0 L10,0 M0,-10 L0,10" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1" transform="rotate(45)"></path>
+                            </g>
+                            <path class="opacity-40" d="M450,100 L455,105 L450,110 L445,105 Z" fill="#97ce4b"></path>
+                            <circle class="opacity-50" cx="600" cy="80" fill="#00d4ff" r="3"></circle>
+                            <circle class="opacity-30" cx="200" cy="300" fill="#fff" r="2"></circle>
+                        </svg>
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center">
+                            <span class="text-primary/40 text-[10px] font-bold uppercase tracking-[0.2em]">Interdimensional Transit Zone</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            
+            <footer class="bg-background-dark/80 backdrop-blur-md border-t border-primary/10 px-6 py-12 lg:px-20 relative z-10">
+                <div class="max-w-[1200px] mx-auto flex flex-col gap-12">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div class="flex items-center gap-3 text-primary">
+                            <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+                            <span class="text-xl font-bold text-slate-100">Rick and Morty</span>
+                        </div>
+                        <div class="flex flex-wrap gap-6 text-slate-400">
+                            <a class="hover:text-primary transition-colors" href="#">Terms</a>
+                            <a class="hover:text-primary transition-colors" href="#">Privacy</a>
+                            <a class="hover:text-primary transition-colors" href="#">API Docs</a>
+                            <a class="hover:text-primary transition-colors" href="#">Contact</a>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <a class="size-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:bg-primary hover:text-background-dark transition-all" href="#">
+                                <span class="material-symbols-outlined">public</span>
+                            </a>
+                            <a class="size-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:bg-primary hover:text-background-dark transition-all" href="#">
+                                <span class="material-symbols-outlined">alternate_email</span>
+                            </a>
+                            <a class="size-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:bg-primary hover:text-background-dark transition-all" href="#">
+                                <span class="material-symbols-outlined">share</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-slate-800/50 gap-4">
+                        <p class="text-slate-500 text-sm">© 2024 Rick and Morty Fan Base. Wubba Lubba Dub Dub!</p>
+                        <p class="text-slate-500 text-sm flex items-center gap-1">
+                            Made for fans in dimension <span class="text-primary font-bold">C-137</span>
+                        </p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
