@@ -7,7 +7,8 @@ export const routes: Routes = [
 },
 {
     path: 'character/:id',
-    loadComponent: () => import('./feature/pages/charactersdetail/charactersdetail').then(m => m.Charactersdetail)
+    loadComponent: () => import('./feature/pages/charactersdetail/charactersdetail').then(m => m.Charactersdetail),
+    data: { renderMode: 'server' }
 }
 
 ];
